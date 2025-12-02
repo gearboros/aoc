@@ -36,7 +36,50 @@ fn find_invalid(input: &str) -> (u64, u64) {
         .reduce(|| (0, 0), |a, b| (a.0 + b.0, a.1 + b.1))
 }
 
-fn has_repeating_pattern(n: u64, only_once: bool) -> bool {
+fn has_repeating_pattern(k: u64, only_once: bool) -> bool {
+    let len = k.checked_ilog10().unwrap_or(0) + 1;
+
+    if only_once {
+        if len % 2 != 0 {
+            return false;
+        }
+        return is_digit_pattern_repeating(k, len / 2, len);
+    }
+
+    for pattern_len in 1..=len / 2 {
+        if len % pattern_len == 0 {
+            if is_digit_pattern_repeating(k, pattern_len, len) {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+fn is_digit_pattern_repeating(k: u64, pattern_len: u32, len: u32) -> bool {
+    let repetitions = len / pattern_len;
+    let pattern_len_power_of_10 = 10u64.pow(pattern_len);
+
+    // get pattern by dividing through respective power of 10
+    let pattern = k / 10u64.pow(len - pattern_len);
+
+    for i in 1..repetitions {
+        let already_checked = len - (i + 1) * pattern_len;
+
+        // ignore already checked digits to the left by dividing through power of 10 + modulo
+        let current_segment = (k / 10_u64.pow(already_checked)) % pattern_len_power_of_10;
+
+        if current_segment != pattern {
+            return false;
+        }
+    }
+
+    true
+}
+
+#[allow(unused)]
+fn has_repeating_pattern_string(n: u64, only_once: bool) -> bool {
     let s = n.to_string();
     let len = s.len();
 
