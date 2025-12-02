@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use regex::Regex;
 
 fn main() {
@@ -9,24 +10,30 @@ fn main() {
 
 fn find_invalid(input: &str) -> (u64, u64) {
     let range_pattern = Regex::new(r"(\d+)-(\d+)").unwrap();
-    let mut sum = 0;
-    let mut sum2 = 0;
 
-    for capture in range_pattern.captures_iter(input) {
-        let start: u64 = capture[1].parse().unwrap();
-        let end: u64 = capture[2].parse().unwrap();
+    range_pattern
+        .captures_iter(input)
+        .collect::<Vec<_>>()
+        .par_iter()
+        .map(|capture| {
+            let start: u64 = capture[1].parse().unwrap();
+            let end: u64 = capture[2].parse().unwrap();
 
-        for k in start..=end {
-            if has_repeating_pattern(k, true) {
-                sum += k;
+            let mut sum = 0;
+            let mut sum2 = 0;
+
+            for k in start..=end {
+                if has_repeating_pattern(k, true) {
+                    sum += k;
+                }
+                if has_repeating_pattern(k, false) {
+                    sum2 += k;
+                }
             }
-            if has_repeating_pattern(k, false) {
-                sum2 += k;
-            }
-        }
-    }
 
-    (sum, sum2)
+            (sum, sum2)
+        })
+        .reduce(|| (0, 0), |a, b| (a.0 + b.0, a.1 + b.1))
 }
 
 fn has_repeating_pattern(n: u64, only_once: bool) -> bool {
