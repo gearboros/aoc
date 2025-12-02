@@ -1,3 +1,6 @@
 [workspace]
 resolver = "3"
 members = ["aoc-*"]
+
+[workspace.dependencies]
+regex = "1.12.2"
