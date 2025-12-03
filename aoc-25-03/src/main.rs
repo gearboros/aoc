@@ -1,15 +1,15 @@
 fn main() {
     let input = include_str!("input");
-    let voltage = calculate_voltage(input);
-    println!("Part 1: {}", voltage.0);
-    println!("Part 2: {}", voltage.1);
+    let (part1, part2) = calculate_voltage(input);
+    println!("Part 1: {}", part1);
+    println!("Part 2: {}", part2);
 }
 
 fn calculate_voltage(input: &str) -> (i32, i64) {
     let lines = input.lines().collect::<Vec<_>>();
 
     let voltage = lines.iter().map(|&line| {
-        get_max_voltage(line)
+        get_max_double_digit_voltage(line)
     }).sum();
 
     let more_voltage = lines.iter().map(|&line| {
@@ -19,18 +19,23 @@ fn calculate_voltage(input: &str) -> (i32, i64) {
     (voltage, more_voltage)
 }
 
-fn get_more_max_voltage(line: &str, l: usize) -> i64 {
-    let digits: Vec<i32> = line.chars().map(|c| c.to_digit(10).unwrap() as i32).collect();
+fn get_more_max_voltage(line: &str, length: usize) -> i64 {
+    let digits: Vec<i32> = line.chars()
+        .filter_map(|c| c.to_digit(10))
+        .map(|d| d as i32)
+        .collect();
+
     let mut start = 0;
-    let mut number = String::new();
+    let mut result = 0i64;
+
     // always get the biggest digit that can still create a l long number after the collected ones.
-    for i in 0..l {
+    for i in 0..length {
         let end = digits.len().saturating_sub(11-i);
         let (max_digit, idx) = get_max_digit(&digits, start, end);
         start = idx + 1;
-        number.push_str(max_digit.to_string().as_str());
+        result = result * 10 + max_digit as i64;
     }
-    number.parse::<i64>().unwrap()
+    result
 }
 
 fn get_max_digit(digits: &[i32], start: usize, end: usize) -> (i32, usize) {
@@ -44,26 +49,25 @@ fn get_max_digit(digits: &[i32], start: usize, end: usize) -> (i32, usize) {
     (*max_digit, idx)
 }
 
-fn get_max_voltage(p0: &str) -> i32 {
-    let digits: Vec<i32> = p0.chars().map(|c| c.to_digit(10).unwrap() as i32).collect();
-    // biggest digit, that isn't the last.
+fn get_max_double_digit_voltage(line: &str) -> i32 {
+    let digits: Vec<i32> = line.chars()
+        .filter_map(|c| c.to_digit(10))
+        .map(|d| d as i32)
+        .collect();
     let most_digits = &digits[..digits.len().saturating_sub(1)];
+
+    // biggest digit, that isn't the last.
     let max_digit = most_digits.iter().max().unwrap();
     let idx = digits[..digits.len().saturating_sub(1)]
         .iter()
         .position(|d| d == max_digit)
         .unwrap();
 
-    let mut max_voltage = 0;
-
-    for i in (idx+1)..digits.len() {
-        let voltage = max_digit * 10 + digits[i];
-        if voltage > max_voltage {
-            max_voltage = voltage;
-        }
-    }
-
-    max_voltage
+    digits[(idx + 1)..]
+        .iter()
+        .map(|&d| max_digit * 10 + d)
+        .max()
+        .unwrap_or(0)
 }
 
 #[cfg(test)]
