@@ -5,11 +5,11 @@ fn main() {
     println!("Part 2: {}", part2);
 }
 
-fn calculate_voltage(input: &str) -> (i32, i64) {
+fn calculate_voltage(input: &str) -> (i64, i64) {
     let lines = input.lines().collect::<Vec<_>>();
 
     let voltage = lines.iter().map(|&line| {
-        get_max_double_digit_voltage(line)
+        get_more_max_voltage(line, 2)
     }).sum();
 
     let more_voltage = lines.iter().map(|&line| {
@@ -28,9 +28,9 @@ fn get_more_max_voltage(line: &str, length: usize) -> i64 {
     let mut start = 0;
     let mut result = 0i64;
 
-    // always get the biggest digit that can still create a l long number after the collected ones.
+    // always get the biggest digit that can still create an l long number after the collected ones.
     for i in 0..length {
-        let end = digits.len().saturating_sub(11-i);
+        let end = digits.len().saturating_sub(length - 1 - i);
         let (max_digit, idx) = get_max_digit(&digits, start, end);
         start = idx + 1;
         result = result * 10 + max_digit as i64;
@@ -49,6 +49,7 @@ fn get_max_digit(digits: &[i32], start: usize, end: usize) -> (i32, usize) {
     (*max_digit, idx)
 }
 
+#[allow(unused)]
 fn get_max_double_digit_voltage(line: &str) -> i32 {
     let digits: Vec<i32> = line.chars()
         .filter_map(|c| c.to_digit(10))
