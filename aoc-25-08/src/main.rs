@@ -39,13 +39,15 @@ fn doing_circuitry(input: &str, runs: i64) -> (usize, usize) {
     // will put a "root" (lowest circuit of box) at index for each circuit that circuit belongs to.
     // so a box of 0,1,2 means [0, 0, 0, 3, 4 ...] because the first three are a box with "root" 0.
     let mut boxes: Vec<usize> = (0..len).collect();
+    // try path condensing optimization
+    let mut rank: Vec<usize> = vec![0; len];
 
     // pre-calc all distances, to just pop the shortest ones, instead of doing double loops each run
     let distances = calc_distances(&circuits, len);
 
     for idx in 0..(runs as usize) {
         let (_distance, i, j) = distances[idx];
-        let _connected = union(&mut boxes, i, j);
+        let _connected = union(&mut boxes, &mut rank, i, j);
         // if connected {
         //     println!("connected at run {}", idx + 1);
         // }
@@ -67,7 +69,7 @@ fn doing_circuitry(input: &str, runs: i64) -> (usize, usize) {
     let last_connected = loop {
         let (_distance, i, j) = distances[idx];
 
-        if union(&mut boxes, i, j) {
+        if union(&mut boxes, &mut rank, i, j) {
             num_circuits -= 1;
 
             if num_circuits == 1 {
@@ -93,14 +95,14 @@ fn calc_distances(circuits: &Vec<Circuit>, len: usize) -> Vec<(i64, usize, usize
     distances
 }
 
-fn find(circuit_box: &Vec<usize>, x: usize) -> usize {
-    if circuit_box[x] == x {
-        return x;
+fn find(circuit_box: &mut Vec<usize>, x: usize) -> usize {
+    if circuit_box[x] != x {
+        circuit_box[x] = find(circuit_box, circuit_box[x]);
     }
-    find(circuit_box, circuit_box[x])
+    circuit_box[x]
 }
 
-fn union(circuit_box: &mut Vec<usize>, x: usize, y: usize) -> bool {
+fn union(circuit_box: &mut Vec<usize>, rank: &mut Vec<usize>, x: usize, y: usize) -> bool {
     let root_x = find(circuit_box, x);
     let root_y = find(circuit_box, y);
 
@@ -108,11 +110,14 @@ fn union(circuit_box: &mut Vec<usize>, x: usize, y: usize) -> bool {
         return false;
     }
 
-    // always attach to smaller root, doesn't matter.
-    if root_y > root_x {
+    // Attach smaller rank tree to larger rank tree
+    if rank[root_x] < rank[root_y] {
+        circuit_box[root_x] = root_y;
+    } else if rank[root_x] > rank[root_y] {
         circuit_box[root_y] = root_x;
     } else {
-        circuit_box[root_x] = root_y;
+        circuit_box[root_y] = root_x;
+        rank[root_x] += 1;
     }
     true
 }
