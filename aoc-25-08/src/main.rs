@@ -19,7 +19,9 @@ impl Circuit {
         let dx = self.x - other.x;
         let dy = self.y - other.y;
         let dz = self.z - other.z;
-        (dx * dx + dy * dy + dz * dz).isqrt()
+        dx * dx + dy * dy + dz * dz
+        // since the actual distances aren't need, we can save the expensive square root calculation
+        //(dx * dx + dy * dy + dz * dz).isqrt()
     }
 }
 
