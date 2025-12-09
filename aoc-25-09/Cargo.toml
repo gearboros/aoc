@@ -1,0 +1,8 @@
+[package]
+name = "aoc-25-09"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+itertools = { workspace = true}
+rayon = { workspace = true}

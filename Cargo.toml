@@ -5,3 +5,4 @@ members = ["aoc-*"]
 [workspace.dependencies]
 regex = "1.12.2"
 rayon = "1.10"
+itertools = "0.12.1"
